@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>GEC Thrissur — Irrigation Fund Tracker</title>
+<style>
+  :root{
+    --navy-deep:#0A2740;
+    --grid-line:#1E4E70;
+    --cyan:#6FD8EE;
+    --cyan-soft:#3E93AC;
+    --amber:#F2994A;
+    --paper:#EAF2F3;
+    --paper-dim:#B9CBD1;
+    --ok:#7ED6A5;
+    --danger:#F27B7B;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--navy-deep);
+    background-image:
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size:28px 28px;
+    color:var(--paper);
+    font-family:'IBM Plex Sans', 'Segoe UI', sans-serif;
+    min-height:100vh;
+  }
+  .wrap{ max-width:980px; margin:0 auto; padding:32px 20px 60px; }
+
+  .titleblock{
+    border:2px solid var(--cyan-soft);
+    background:rgba(10,39,64,0.6);
+    padding:18px 22px;
+    display:flex; justify-content:space-between; align-items:flex-end;
+    flex-wrap:wrap; gap:12px; margin-bottom:28px;
+  }
+  .titleblock h1{
+    font-family:'IBM Plex Mono', monospace; font-size:22px; letter-spacing:1px;
+    margin:0 0 4px; color:var(--paper); text-transform:uppercase;
+  }
+  .titleblock .sub{ font-size:13px; color:var(--paper-dim); }
+  .titleblock .meta{
+    text-align:right; font-family:'IBM Plex Mono', monospace;
+    font-size:11px; color:var(--cyan); line-height:1.6;
+  }
+
+  .edit-banner{
+    display:none; background:rgba(242,153,74,0.12); border:1px solid var(--amber);
+    color:var(--amber); font-family:'IBM Plex Mono', monospace; font-size:12px;
+    padding:10px 16px; text-align:center; margin-bottom:20px;
+    align-items:center; justify-content:center; gap:14px;
+  }
+  .edit-banner.open{ display:flex; }
+  .edit-banner button{
+    background:none; border:1px solid var(--amber); color:var(--amber);
+    font-family:'IBM Plex Mono', monospace; font-size:11px; padding:4px 10px; cursor:pointer;
+  }
+
+  .pipe-panel{
+    border:1px solid var(--grid-line); background:rgba(18,54,85,0.5);
+    padding:20px 24px; margin-bottom:28px;
+  }
+  .pipe-panel .label-row{
+    display:flex; justify-content:space-between; align-items:baseline;
+    margin-bottom:10px; font-family:'IBM Plex Mono', monospace;
+  }
+  .pipe-panel .label-row .figs{ font-size:15px; color:var(--cyan); }
+  .pipe-panel .label-row .pct{ font-size:28px; color:var(--amber); font-weight:600; }
+  .pipe{
+    position:relative; height:26px; border:2px solid var(--cyan-soft);
+    border-radius:13px; background:rgba(0,0,0,0.25); overflow:hidden;
+  }
+  .pipe-fill{
+    height:100%; width:0%; background:linear-gradient(90deg, var(--cyan-soft), var(--cyan));
+    transition:width .6s ease; position:relative;
+  }
+  .pipe-fill::after{
+    content:''; position:absolute; inset:0;
+    background:repeating-linear-gradient(45deg, rgba(255,255,255,0.12) 0 10px, transparent 10px 20px);
+    animation:flow 2s linear infinite;
+  }
+  @keyframes flow{ from{background-position:0 0;} to{background-position:28px 0;} }
+  .sprinkler{
+    font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--paper-dim);
+    margin-top:6px; display:flex; justify-content:space-between;
+  }
+
+  .grid-title{
+    font-family:'IBM Plex Mono', monospace; font-size:12px; letter-spacing:2px;
+    color:var(--cyan-soft); text-transform:uppercase; margin:0 0 12px 2px;
+    display:flex; justify-content:space-between; align-items:baseline;
+  }
+  .grid-title .hint{ text-transform:none; letter-spacing:0; color:var(--paper-dim); font-size:11px; }
+
+  .source-note{ font-size:11px; color:var(--paper-dim); font-style:italic; margin-bottom:24px; }
+
+  .batches{ display:flex; flex-direction:column; gap:12px; margin-bottom:20px; }
+  .batch-card{ border:1px solid var(--grid-line); background:rgba(10,39,64,0.55); padding:14px 18px; }
+  .batch-card .row1{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px; gap:12px; flex-wrap:wrap; }
+  .batch-card .year{ font-family:'IBM Plex Mono', monospace; font-size:16px; color:var(--paper); letter-spacing:1px; }
+  .batch-card .totals{ font-family:'IBM Plex Mono', monospace; font-size:12px; color:var(--paper-dim); }
+  .batch-card .totals b{ color:var(--cyan); font-weight:600; }
+  .mini-pipe{ height:9px; border:1px solid var(--cyan-soft); border-radius:5px; background:rgba(0,0,0,0.25); overflow:hidden; margin-bottom:10px; }
+  .mini-fill{ height:100%; background:var(--cyan); width:0%; transition:width .4s ease; }
+  .mini-fill.done{ background:var(--ok); }
+
+  details.entries{ margin-top:2px; }
+  details.entries summary{
+    cursor:pointer; font-family:'IBM Plex Mono', monospace; font-size:11px;
+    color:var(--cyan-soft); list-style:none; user-select:none;
+  }
+  details.entries summary::-webkit-details-marker{ display:none; }
+  details.entries summary::before{ content:'▸ '; }
+  details.entries[open] summary::before{ content:'▾ '; }
+
+  .entry-list{ margin-top:8px; display:flex; flex-direction:column; gap:4px; }
+  .entry-row{
+    display:flex; justify-content:space-between; align-items:center; gap:8px;
+    font-size:12px; padding:5px 8px; background:rgba(0,0,0,0.18);
+    border-left:2px solid var(--cyan-soft);
+  }
+  .entry-row .who{ color:var(--paper); font-family:'IBM Plex Sans', sans-serif; }
+  .entry-row .who .date{ color:var(--paper-dim); font-size:10px; margin-left:6px; }
+  .entry-row .amt{ font-family:'IBM Plex Mono', monospace; color:var(--amber); white-space:nowrap; }
+  .entry-row .del{
+    background:none; border:1px solid var(--danger); color:var(--danger);
+    font-size:10px; padding:2px 6px; cursor:pointer; font-family:'IBM Plex Mono', monospace;
+  }
+  .no-entries{ font-size:11px; color:var(--paper-dim); font-style:italic; padding:4px 0; }
+
+  .add-row{ display:flex; gap:8px; margin-top:10px; }
+  .add-row input[type=text]{
+    flex:2; min-width:0; background:rgba(0,0,0,0.3); border:1px solid var(--grid-line);
+    color:var(--paper); font-family:'IBM Plex Sans', sans-serif; font-size:12px; padding:7px 9px;
+  }
+  .add-row input[type=number]{
+    flex:1; min-width:90px; background:rgba(0,0,0,0.3); border:1px solid var(--grid-line);
+    color:var(--paper); font-family:'IBM Plex Mono', monospace; font-size:12px; padding:7px 9px;
+  }
+  .add-row button{
+    background:var(--amber); border:none; color:#3a1e00; font-family:'IBM Plex Mono', monospace;
+    font-size:12px; font-weight:600; padding:7px 14px; cursor:pointer; white-space:nowrap;
+  }
+  .add-row button:hover{ filter:brightness(1.08); }
+
+  .status{ font-size:11px; color:var(--paper-dim); text-align:center; margin-top:18px; font-family:'IBM Plex Mono', monospace; }
+
+  .rep-access{ margin-top:32px; border-top:1px dashed var(--grid-line); padding-top:18px; text-align:center; }
+  .rep-toggle{
+    background:none; border:1px solid var(--cyan-soft); color:var(--cyan);
+    font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:1px;
+    text-transform:uppercase; padding:8px 16px; cursor:pointer;
+  }
+  .rep-toggle:hover{ background:rgba(111,216,238,0.08); }
+  .rep-login{ display:none; justify-content:center; gap:8px; margin-top:12px; }
+  .rep-login.open{ display:flex; }
+  .rep-login input{
+    background:rgba(0,0,0,0.3); border:1px solid var(--grid-line); color:var(--paper);
+    font-family:'IBM Plex Mono', monospace; font-size:13px; padding:8px 10px; width:180px;
+  }
+  .rep-login button{
+    background:var(--amber); border:none; color:#3a1e00; font-family:'IBM Plex Mono', monospace;
+    font-weight:600; font-size:12px; padding:8px 14px; cursor:pointer;
+  }
+  .rep-error{ color:var(--danger); font-size:11px; margin-top:8px; display:none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="titleblock">
+    <div>
+      <h1>Sprinkler Irrigation System — Fund Tracker</h1>
+      <div class="sub">Government Engineering College, Thrissur · Alumni Crowdfunding Initiative</div>
+    </div>
+    <div class="meta">
+      DWG NO. GECT-IRR-01<br>
+      BATCHES 2010–2024<br>
+      TARGET ₹12,000 / BATCH
+    </div>
+  </div>
+
+  <div class="edit-banner" id="editBanner">
+    <span>BATCH REP MODE — you can add or remove individual contribution entries</span>
+    <button id="lockBtn">Lock</button>
+  </div>
+
+  <div class="pipe-panel">
+    <div class="label-row">
+      <div class="figs" id="overallFigs">₹0 collected of ₹1,60,000</div>
+      <div class="pct" id="overallPct">0%</div>
+    </div>
+    <div class="pipe"><div class="pipe-fill" id="overallFill"></div></div>
+    <div class="sprinkler">
+      <span id="batchesFullyFunded">0 of 15 batches fully funded</span>
+      <span>Overall target: ₹1,60,000</span>
+    </div>
+  </div>
+
+  <div class="source-note">Every figure below is the sum of individually logged contributions — expand a batch to see who's given what.</div>
+
+  <div class="grid-title">
+    <span>Batch-wise Progress</span>
+    <span class="hint" id="gridHint">View only</span>
+  </div>
+  <div class="batches" id="batchGrid"></div>
+
+  <div class="status" id="statusLine">Connecting to database…</div>
+
+  <div class="rep-access">
+    <button class="rep-toggle" id="repToggle">Batch Rep Access</button>
+    <div class="rep-login" id="repLogin">
+      <input type="password" id="passcodeInput" placeholder="Enter rep passcode">
+      <button id="passcodeSubmit">Unlock</button>
+    </div>
+    <div class="rep-error" id="repError">Incorrect passcode.</div>
+  </div>
+</div>
+
+<script>
+const START_YEAR = 2010;
+const END_YEAR = 2024;
+const BATCH_TARGET = 12000;
+const OVERALL_TARGET = 160000;
+
+// Your Firebase Realtime Database URL (no trailing slash).
+const DATABASE_URL = 'https://wrhi-gect-default-rtdb.asia-southeast1.firebasedatabase.app';
+const DATA_PATH = `${DATABASE_URL}/batches.json`;
+
+// Soft deterrent only — plain client-side JS, visible in page source.
+// Stops casual edits by viewers, not determined ones. Change freely.
+const REP_PASSCODE = 'GECT2025';
+
+let batches = {};   // { [year]: [{id, name, amount, ts}, ...] }
+let saveTimer = null;
+let editMode = false;
+
+function years(){
+  const arr = [];
+  for(let y = START_YEAR; y <= END_YEAR; y++) arr.push(y);
+  return arr;
+}
+
+function defaultBatches(){
+  const obj = {};
+  years().forEach(y => { obj[y] = []; });
+  return obj;
+}
+
+function fmt(n){ return '₹' + Number(n).toLocaleString('en-IN'); }
+
+function batchTotal(y){
+  return (batches[y] || []).reduce((sum, e) => sum + Number(e.amount || 0), 0);
+}
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+async function loadData(){
+  const statusEl = document.getElementById('statusLine');
+  try{
+    const res = await fetch(DATA_PATH);
+    if(!res.ok) throw new Error('fetch failed');
+    const data = await res.json();
+    batches = data || defaultBatches();
+  }catch(e){
+    batches = defaultBatches();
+    statusEl.textContent = 'Could not reach the database — showing empty data. Check your connection and reload.';
+    render();
+    return;
+  }
+  years().forEach(y => { if(!batches[y]) batches[y] = []; });
+  statusEl.textContent = 'Shared live with everyone who opens this page';
+  render();
+}
+
+async function saveBatches(){
+  try{
+    const res = await fetch(DATA_PATH, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(batches)
+    });
+    if(!res.ok) throw new Error('save failed');
+    document.getElementById('statusLine').textContent = 'Saved · shared live with everyone who opens this page';
+  }catch(e){
+    document.getElementById('statusLine').textContent = 'Could not save — check your connection and try again.';
+  }
+}
+
+function render(){
+  renderOverall();
+  renderGrid();
+}
+
+function renderOverall(){
+  let totalCollected = 0, fullyFunded = 0;
+  years().forEach(y => {
+    const t = batchTotal(y);
+    totalCollected += t;
+    if(t >= BATCH_TARGET) fullyFunded++;
+  });
+  const pct = OVERALL_TARGET > 0 ? Math.min(100, Math.round((totalCollected/OVERALL_TARGET)*100)) : 0;
+  document.getElementById('overallFigs').textContent = `${fmt(totalCollected)} collected of ${fmt(OVERALL_TARGET)}`;
+  document.getElementById('overallPct').textContent = pct + '%';
+  document.getElementById('overallFill').style.width = pct + '%';
+  document.getElementById('batchesFullyFunded').textContent = `${fullyFunded} of ${years().length} batches fully funded`;
+}
+
+function renderGrid(){
+  const grid = document.getElementById('batchGrid');
+  grid.innerHTML = '';
+  years().forEach(y => {
+    const entries = batches[y] || [];
+    const total = batchTotal(y);
+    const pct = Math.min(100, Math.round((total/BATCH_TARGET)*100));
+    const done = total >= BATCH_TARGET;
+
+    const entryRows = entries.length
+      ? entries.slice().sort((a,b) => b.ts - a.ts).map(e => `
+          <div class="entry-row">
+            <span class="who">${e.name ? escapeHtml(e.name) : 'Anonymous'}<span class="date">${new Date(e.ts).toLocaleDateString('en-IN', {day:'numeric', month:'short'})}</span></span>
+            <span class="amt">${fmt(e.amount)}</span>
+            ${editMode ? `<button class="del" data-year="${y}" data-id="${e.id}">Remove</button>` : ''}
+          </div>
+        `).join('')
+      : '<div class="no-entries">No contributions logged yet.</div>';
+
+    const addForm = editMode ? `
+      <div class="add-row">
+        <input type="text" placeholder="Contributor name (optional)" id="name-${y}">
+        <input type="number" min="1" placeholder="₹ amount" id="amt-${y}">
+        <button data-add-year="${y}">Add</button>
+      </div>
+    ` : '';
+
+    const card = document.createElement('div');
+    card.className = 'batch-card';
+    card.innerHTML = `
+      <div class="row1">
+        <div class="year">Batch ${y}</div>
+        <div class="totals"><b>${fmt(total)}</b> of ${fmt(BATCH_TARGET)} · ${pct}% funded</div>
+      </div>
+      <div class="mini-pipe"><div class="mini-fill ${done ? 'done' : ''}" style="width:${pct}%"></div></div>
+      <details class="entries">
+        <summary>${entries.length} contribution${entries.length === 1 ? '' : 's'}</summary>
+        <div class="entry-list">${entryRows}</div>
+        ${addForm}
+      </details>
+    `;
+
+    if(editMode){
+      card.querySelector(`[data-add-year="${y}"]`).addEventListener('click', () => addEntry(y));
+      card.querySelector(`#amt-${y}`).addEventListener('keydown', (ev) => { if(ev.key === 'Enter') addEntry(y); });
+      card.querySelectorAll('.del').forEach(btn => {
+        btn.addEventListener('click', () => removeEntry(btn.dataset.year, btn.dataset.id));
+      });
+      card.querySelector('details').open = true;
+    }
+
+    grid.appendChild(card);
+  });
+}
+
+function addEntry(year){
+  const nameInput = document.getElementById(`name-${year}`);
+  const amtInput = document.getElementById(`amt-${year}`);
+  const amount = parseFloat(amtInput.value);
+  if(!amount || amount <= 0){ amtInput.focus(); return; }
+  const name = nameInput.value.trim();
+
+  batches[year].push({
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+    name,
+    amount,
+    ts: Date.now()
+  });
+
+  render();
+  persist();
+}
+
+function removeEntry(year, id){
+  batches[year] = (batches[year] || []).filter(e => e.id !== id);
+  render();
+  persist();
+}
+
+function persist(){
+  document.getElementById('statusLine').textContent = 'Saving…';
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveBatches, 250);
+}
+
+function setEditMode(on){
+  editMode = on;
+  document.getElementById('editBanner').classList.toggle('open', on);
+  document.getElementById('gridHint').textContent = on ? 'Editing — changes save automatically' : 'View only';
+  document.getElementById('repToggle').style.display = on ? 'none' : 'inline-block';
+  document.getElementById('repLogin').classList.remove('open');
+  document.getElementById('repError').style.display = 'none';
+  render();
+}
+
+document.getElementById('repToggle').addEventListener('click', () => {
+  document.getElementById('repLogin').classList.toggle('open');
+});
+document.getElementById('passcodeSubmit').addEventListener('click', tryUnlock);
+document.getElementById('passcodeInput').addEventListener('keydown', (e) => { if(e.key === 'Enter') tryUnlock(); });
+document.getElementById('lockBtn').addEventListener('click', () => setEditMode(false));
+
+function tryUnlock(){
+  const input = document.getElementById('passcodeInput');
+  if(input.value === REP_PASSCODE){
+    input.value = '';
+    setEditMode(true);
+  }else{
+    document.getElementById('repError').style.display = 'block';
+  }
+}
+
+loadData();
+</script>
+</body>
+</html>
