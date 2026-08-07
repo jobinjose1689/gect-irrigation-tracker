@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>GEC Thrissur — Irrigation Fund Tracker</title>
 <style>
   :root{
@@ -165,6 +166,44 @@
     font-weight:600; font-size:12px; padding:8px 14px; cursor:pointer;
   }
   .rep-error{ color:var(--danger); font-size:11px; margin-top:8px; display:none; }
+
+  @media (max-width: 640px){
+    .wrap{ padding:18px 12px 40px; }
+
+    .titleblock{ padding:14px 16px; flex-direction:column; align-items:flex-start; margin-bottom:20px; }
+    .titleblock h1{ font-size:17px; line-height:1.35; }
+    .titleblock .sub{ font-size:12px; }
+    .titleblock .meta{ text-align:left; font-size:10px; }
+
+    .edit-banner{ flex-direction:column; gap:8px; font-size:11px; padding:10px 12px; }
+
+    .pipe-panel{ padding:14px 16px; margin-bottom:20px; }
+    .pipe-panel .label-row{ flex-direction:column; align-items:flex-start; gap:2px; }
+    .pipe-panel .label-row .figs{ font-size:13px; }
+    .pipe-panel .label-row .pct{ font-size:24px; }
+    .sprinkler{ flex-direction:column; gap:2px; }
+
+    .grid-title{ flex-direction:column; align-items:flex-start; gap:2px; }
+
+    .batch-card{ padding:12px 14px; }
+    .batch-card .row1{ flex-direction:column; align-items:flex-start; gap:4px; margin-bottom:10px; }
+    .batch-card .year{ font-size:15px; }
+    .batch-card .totals{ font-size:11px; }
+
+    .entry-row{ flex-wrap:wrap; }
+    .entry-row .who{ flex:1 1 100%; }
+    .entry-row .who .date{ display:block; margin-left:0; margin-top:2px; }
+    .entry-row .amt{ order:2; }
+    .entry-row .del{ order:3; padding:5px 10px; }
+
+    .add-row{ flex-direction:column; }
+    .add-row input[type=text], .add-row input[type=number]{ flex:none; width:100%; font-size:16px; padding:10px; }
+    .add-row button{ padding:10px 14px; font-size:13px; }
+
+    .rep-login{ flex-direction:column; align-items:stretch; }
+    .rep-login input{ width:100%; font-size:16px; }
+    .rep-toggle{ width:100%; }
+  }
 </style>
 </head>
 <body>
@@ -212,26 +251,47 @@
   <div class="rep-access">
     <button class="rep-toggle" id="repToggle">Batch Rep Access</button>
     <div class="rep-login" id="repLogin">
-      <input type="password" id="passcodeInput" placeholder="Enter rep passcode">
+      <input type="password" id="passcodeInput" placeholder="Enter rep password">
       <button id="passcodeSubmit">Unlock</button>
     </div>
-    <div class="rep-error" id="repError">Incorrect passcode.</div>
+    <div class="rep-error" id="repError">Incorrect password.</div>
   </div>
 </div>
 
-<script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
+import {
+  getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
+import {
+  getDatabase, ref, onValue, set, remove
+} from "https://www.gstatic.com/firebasejs/12.17.1/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCyHoJ8sFA78aVLYftvbjXeHXKHHruSGeY",
+  authDomain: "wrhi-gect.firebaseapp.com",
+  databaseURL: "https://wrhi-gect-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "wrhi-gect",
+  storageBucket: "wrhi-gect.firebasestorage.app",
+  messagingSenderId: "499119522943",
+  appId: "1:499119522943:web:e115c0e0cddf3bbff12b4a"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getDatabase(app);
+
+// Shared rep account — one login for all batch reps.
+// The real secret is the password set on this account in Firebase Auth,
+// never stored in this file.
+const REP_EMAIL = 'reps@gect-irrigation.local';
+
 const START_YEAR = 2010;
 const END_YEAR = 2024;
 const BATCH_TARGET = 12000;
 const OVERALL_TARGET = 160000;
-const STORAGE_KEY = 'gect-irrigation-entries-v3';
-
-// Soft deterrent only — plain client-side JS, visible in page source.
-// Stops casual edits by viewers, not determined ones. Change freely.
-const REP_PASSCODE = 'GECTWATER';
 
 let batches = {};   // { [year]: [{id, name, amount, ts}, ...] }
-let saveTimer = null;
 let editMode = false;
 
 function years(){
@@ -258,27 +318,29 @@ function escapeHtml(str){
   return div.innerHTML;
 }
 
-async function loadData(){
-  const statusEl = document.getElementById('statusLine');
-  try{
-    const b = await window.storage.get(STORAGE_KEY, true);
-    batches = b ? JSON.parse(b.value) : defaultBatches();
-  }catch(e){
-    batches = defaultBatches();
+function normalizeSnapshot(val){
+  const obj = defaultBatches();
+  if(val){
+    years().forEach(y => {
+      const yearNode = val[y];
+      if(yearNode){
+        obj[y] = Object.keys(yearNode).map(id => ({ id, ...yearNode[id] }));
+      }
+    });
   }
-  years().forEach(y => { if(!batches[y]) batches[y] = []; });
-  statusEl.textContent = 'Shared across everyone with this link · saved automatically';
-  render();
+  return obj;
 }
 
-async function saveBatches(){
-  try{
-    const result = await window.storage.set(STORAGE_KEY, JSON.stringify(batches), true);
-    if(!result) throw new Error('no result');
-    document.getElementById('statusLine').textContent = 'Saved · shared across everyone with this link';
-  }catch(e){
-    document.getElementById('statusLine').textContent = 'Could not save — check connection and try again.';
-  }
+function loadData(){
+  const statusEl = document.getElementById('statusLine');
+  batches = defaultBatches();
+  onValue(ref(db, 'batches'), (snapshot) => {
+    batches = normalizeSnapshot(snapshot.val());
+    statusEl.textContent = 'Live · shared across everyone with this link';
+    render();
+  }, (err) => {
+    statusEl.textContent = 'Could not connect — check connection and try again.';
+  });
 }
 
 function render(){
@@ -355,34 +417,32 @@ function renderGrid(){
   });
 }
 
-function addEntry(year){
+async function addEntry(year){
   const nameInput = document.getElementById(`name-${year}`);
   const amtInput = document.getElementById(`amt-${year}`);
   const amount = parseFloat(amtInput.value);
   if(!amount || amount <= 0){ amtInput.focus(); return; }
   const name = nameInput.value.trim();
+  const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  const statusEl = document.getElementById('statusLine');
 
-  batches[year].push({
-    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
-    name,
-    amount,
-    ts: Date.now()
-  });
-
-  render();
-  persist();
+  statusEl.textContent = 'Saving…';
+  try{
+    await set(ref(db, `batches/${year}/${id}`), { name, amount, ts: Date.now() });
+    // onValue listener re-renders with the confirmed data.
+  }catch(e){
+    statusEl.textContent = 'Could not save — check connection and try again.';
+  }
 }
 
-function removeEntry(year, id){
-  batches[year] = (batches[year] || []).filter(e => e.id !== id);
-  render();
-  persist();
-}
-
-function persist(){
-  document.getElementById('statusLine').textContent = 'Saving…';
-  clearTimeout(saveTimer);
-  saveTimer = setTimeout(saveBatches, 250);
+async function removeEntry(year, id){
+  const statusEl = document.getElementById('statusLine');
+  statusEl.textContent = 'Removing…';
+  try{
+    await remove(ref(db, `batches/${year}/${id}`));
+  }catch(e){
+    statusEl.textContent = 'Could not remove — check connection and try again.';
+  }
 }
 
 function setEditMode(on){
@@ -400,17 +460,33 @@ document.getElementById('repToggle').addEventListener('click', () => {
 });
 document.getElementById('passcodeSubmit').addEventListener('click', tryUnlock);
 document.getElementById('passcodeInput').addEventListener('keydown', (e) => { if(e.key === 'Enter') tryUnlock(); });
-document.getElementById('lockBtn').addEventListener('click', () => setEditMode(false));
+document.getElementById('lockBtn').addEventListener('click', () => {
+  signOut(auth).catch(() => {});
+});
 
-function tryUnlock(){
+async function tryUnlock(){
   const input = document.getElementById('passcodeInput');
-  if(input.value === REP_PASSCODE){
+  const submitBtn = document.getElementById('passcodeSubmit');
+  const errorEl = document.getElementById('repError');
+  errorEl.style.display = 'none';
+  submitBtn.disabled = true;
+  try{
+    await signInWithEmailAndPassword(auth, REP_EMAIL, input.value);
     input.value = '';
-    setEditMode(true);
-  }else{
-    document.getElementById('repError').style.display = 'block';
+    // onAuthStateChanged below flips editMode on once Firebase confirms.
+  }catch(e){
+    errorEl.style.display = 'block';
+  }finally{
+    submitBtn.disabled = false;
   }
 }
+
+// The real gate: editMode only turns on when Firebase confirms a signed-in
+// session, and turns off the moment that session ends (e.g. token expiry,
+// sign-out on another tab). The database rules enforce this server-side too.
+onAuthStateChanged(auth, (user) => {
+  setEditMode(!!user);
+});
 
 loadData();
 </script>
