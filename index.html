@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
 <title>GEC Thrissur — Irrigation Fund Tracker</title>
 <style>
   :root{
@@ -165,6 +166,41 @@
     font-weight:600; font-size:12px; padding:8px 14px; cursor:pointer;
   }
   .rep-error{ color:var(--danger); font-size:11px; margin-top:8px; display:none; }
+
+  /* ---- Mobile adjustments ---- */
+  @media (max-width: 600px){
+    .wrap{ padding:16px 12px 40px; }
+
+    .titleblock{ flex-direction:column; align-items:flex-start; padding:14px 16px; }
+    .titleblock h1{ font-size:17px; line-height:1.3; }
+    .titleblock .meta{ text-align:left; }
+
+    .pipe-panel{ padding:14px 16px; }
+    .pipe-panel .label-row{ flex-direction:column; align-items:flex-start; gap:2px; }
+    .pipe-panel .label-row .figs{ font-size:13px; }
+    .pipe-panel .label-row .pct{ font-size:24px; }
+    .sprinkler{ flex-direction:column; gap:2px; }
+
+    .grid-title{ flex-direction:column; align-items:flex-start; gap:2px; }
+
+    .batch-card{ padding:12px 14px; }
+    .batch-card .row1{ flex-direction:column; align-items:flex-start; gap:2px; }
+    .batch-card .totals{ font-size:12px; }
+
+    .add-row{ flex-direction:column; }
+    .add-row input, .add-row button{ width:100%; font-size:16px; }
+    .add-row button{ padding:12px 14px; }
+
+    .entry-row{ flex-wrap:wrap; }
+    .entry-row .del{ padding:5px 10px; }
+
+    .edit-banner{ flex-direction:column; gap:8px; font-size:11px; }
+
+    .rep-login{ flex-direction:column; align-items:stretch; }
+    .rep-login input{ width:100%; font-size:16px; }
+    .rep-login button{ padding:12px 14px; }
+    .rep-toggle{ width:100%; padding:12px 16px; }
+  }
 </style>
 </head>
 <body>
