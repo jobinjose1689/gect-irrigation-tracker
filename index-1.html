@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>WRHI GECT — Irrigation Fund Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy-deep:#0A2740;
+    --grid-line:#1E4E70;
+    --cyan:#6FD8EE;
+    --cyan-soft:#3E93AC;
+    --amber:#F2994A;
+    --paper:#EAF2F3;
+    --paper-dim:#B9CBD1;
+    --ok:#7ED6A5;
+    --danger:#F27B7B;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--navy-deep);
+    background-image:
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size:28px 28px;
+    color:var(--paper);
+    font-family:'IBM Plex Sans', 'Segoe UI', sans-serif;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- Hero ---------- */
+  .hero{
+    position:relative; width:100%; height:min(56vw, 460px); min-height:260px;
+    overflow:hidden; border-bottom:2px solid var(--cyan-soft);
+  }
+  .hero-img{
+    width:100%; height:100%; object-fit:cover; object-position:center 40%;
+    display:block; filter:saturate(1.05) contrast(1.02);
+  }
+  .hero-overlay{
+    position:absolute; inset:0;
+    background:
+      linear-gradient(180deg, rgba(10,39,64,0.15) 0%, rgba(10,39,64,0.35) 45%, rgba(10,20,30,0.92) 100%),
+      linear-gradient(90deg, rgba(10,39,64,0.55) 0%, rgba(10,39,64,0) 40%);
+  }
+  .hero-content{
+    position:absolute; left:0; right:0; bottom:0; padding:28px clamp(20px,4vw,56px) 26px;
+  }
+  .hero-tag{
+    display:inline-block; font-family:'IBM Plex Mono', monospace; font-size:11px;
+    letter-spacing:2px; text-transform:uppercase; color:var(--navy-deep);
+    background:var(--amber); padding:4px 10px; border-radius:2px; margin-bottom:10px;
+  }
+  .hero-content h2{
+    margin:0 0 6px; font-family:'IBM Plex Sans', sans-serif; font-weight:700;
+    font-size:clamp(22px, 4vw, 38px); color:#fff; letter-spacing:0.2px;
+    text-shadow:0 2px 12px rgba(0,0,0,0.45);
+  }
+  .hero-content p{
+    margin:0; max-width:640px; font-size:clamp(12.5px, 1.6vw, 15px);
+    color:var(--paper-dim); line-height:1.5;
+  }
+
+  .wrap{ max-width:980px; margin:0 auto; padding:32px 20px 60px; }
+
+  .titleblock{
+    border:1px solid var(--grid-line); border-top:3px solid var(--cyan-soft);
+    background:linear-gradient(180deg, rgba(20,58,90,0.55), rgba(10,39,64,0.6));
+    padding:18px 22px; border-radius:2px;
+    box-shadow:0 8px 24px -8px rgba(0,0,0,0.5);
+    display:flex; justify-content:space-between; align-items:flex-end;
+    flex-wrap:wrap; gap:12px; margin-bottom:28px;
+  }
+  .titleblock h1{
+    font-family:'IBM Plex Mono', monospace; font-size:22px; letter-spacing:1px;
+    margin:0 0 4px; color:var(--paper); text-transform:uppercase;
+  }
+  .titleblock .sub{ font-size:13px; color:var(--paper-dim); }
+  .titleblock .meta{
+    text-align:right; font-family:'IBM Plex Mono', monospace;
+    font-size:11px; color:var(--cyan); line-height:1.6;
+  }
+
+  .edit-banner{
+    display:none; background:rgba(242,153,74,0.12); border:1px solid var(--amber);
+    color:var(--amber); font-family:'IBM Plex Mono', monospace; font-size:12px;
+    padding:10px 16px; text-align:center; margin-bottom:20px;
+    align-items:center; justify-content:center; gap:14px;
+  }
+  .edit-banner.open{ display:flex; }
+  .edit-banner button{
+    background:none; border:1px solid var(--amber); color:var(--amber);
+    font-family:'IBM Plex Mono', monospace; font-size:11px; padding:4px 10px; cursor:pointer;
+  }
+
+  .pipe-panel{
+    border:1px solid var(--grid-line); background:rgba(18,54,85,0.5);
+    padding:20px 24px; margin-bottom:28px; border-radius:2px;
+    box-shadow:0 8px 24px -10px rgba(0,0,0,0.45);
+  }
+  .pipe-panel .label-row{
+    display:flex; justify-content:space-between; align-items:baseline;
+    margin-bottom:10px; font-family:'IBM Plex Mono', monospace;
+  }
+  .pipe-panel .label-row .figs{ font-size:15px; color:var(--cyan); }
+  .pipe-panel .label-row .pct{ font-size:28px; color:var(--amber); font-weight:600; }
+  .pipe{
+    position:relative; height:26px; border:2px solid var(--cyan-soft);
+    border-radius:13px; background:rgba(0,0,0,0.25); overflow:hidden;
+  }
+  .pipe-fill{
+    height:100%; width:0%; background:linear-gradient(90deg, var(--cyan-soft), var(--cyan));
+    transition:width .6s ease; position:relative;
+  }
+  .pipe-fill::after{
+    content:''; position:absolute; inset:0;
+    background:repeating-linear-gradient(45deg, rgba(255,255,255,0.12) 0 10px, transparent 10px 20px);
+    animation:flow 2s linear infinite;
+  }
+  @keyframes flow{ from{background-position:0 0;} to{background-position:28px 0;} }
+  .sprinkler{
+    font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--paper-dim);
+    margin-top:6px; display:flex; justify-content:space-between;
+  }
+
+  .grid-title{
+    font-family:'IBM Plex Mono', monospace; font-size:12px; letter-spacing:2px;
+    color:var(--cyan-soft); text-transform:uppercase; margin:0 0 12px 2px;
+    display:flex; justify-content:space-between; align-items:baseline;
+  }
+  .grid-title .hint{ text-transform:none; letter-spacing:0; color:var(--paper-dim); font-size:11px; }
+
+  .source-note{ font-size:11px; color:var(--paper-dim); font-style:italic; margin-bottom:24px; }
+
+  .batches{ display:flex; flex-direction:column; gap:12px; margin-bottom:20px; }
+  .batch-card{
+    border:1px solid var(--grid-line); background:rgba(10,39,64,0.55); padding:14px 18px;
+    border-radius:2px; transition:border-color .2s ease;
+  }
+  .batch-card:hover{ border-color:var(--cyan-soft); }
+  .batch-card .row1{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px; gap:12px; flex-wrap:wrap; }
+  .batch-card .year{ font-family:'IBM Plex Mono', monospace; font-size:16px; color:var(--paper); letter-spacing:1px; }
+  .batch-card .totals{ font-family:'IBM Plex Mono', monospace; font-size:12px; color:var(--paper-dim); }
+  .batch-card .totals b{ color:var(--cyan); font-weight:600; }
+  .mini-pipe{ height:9px; border:1px solid var(--cyan-soft); border-radius:5px; background:rgba(0,0,0,0.25); overflow:hidden; margin-bottom:10px; }
+  .mini-fill{ height:100%; background:var(--cyan); width:0%; transition:width .4s ease; }
+  .mini-fill.done{ background:var(--ok); }
+
+  details.entries{ margin-top:2px; }
+  details.entries summary{
+    cursor:pointer; font-family:'IBM Plex Mono', monospace; font-size:11px;
+    color:var(--cyan-soft); list-style:none; user-select:none;
+  }
+  details.entries summary::-webkit-details-marker{ display:none; }
+  details.entries summary::before{ content:'▸ '; }
+  details.entries[open] summary::before{ content:'▾ '; }
+
+  .entry-list{ margin-top:8px; display:flex; flex-direction:column; gap:4px; }
+  .entry-row{
+    display:flex; justify-content:space-between; align-items:center; gap:8px;
+    font-size:12px; padding:5px 8px; background:rgba(0,0,0,0.18);
+    border-left:2px solid var(--cyan-soft);
+  }
+  .entry-row .who{ color:var(--paper); font-family:'IBM Plex Sans', sans-serif; }
+  .entry-row .who .date{ color:var(--paper-dim); font-size:10px; margin-left:6px; }
+  .entry-row .who .vis-tag{
+    font-family:'IBM Plex Mono', monospace; font-size:9px; letter-spacing:0.5px;
+    text-transform:uppercase; margin-left:7px; padding:1px 5px; border-radius:2px;
+    color:var(--paper-dim); border:1px solid var(--grid-line);
+  }
+  .entry-row .who .vis-tag.is-public{ color:var(--ok); border-color:var(--ok); }
+  .entry-row .amt{ font-family:'IBM Plex Mono', monospace; color:var(--amber); white-space:nowrap; }
+  .entry-row .del{
+    background:none; border:1px solid var(--danger); color:var(--danger);
+    font-size:10px; padding:2px 6px; cursor:pointer; font-family:'IBM Plex Mono', monospace;
+  }
+  .no-entries{ font-size:11px; color:var(--paper-dim); font-style:italic; padding:4px 0; }
+
+  .add-row{ display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; align-items:center; }
+  .add-row input[type=text]{
+    flex:2; min-width:140px; background:rgba(0,0,0,0.3); border:1px solid var(--grid-line);
+    color:var(--paper); font-family:'IBM Plex Sans', sans-serif; font-size:12px; padding:7px 9px;
+  }
+  .add-row input[type=number]{
+    flex:1; min-width:90px; background:rgba(0,0,0,0.3); border:1px solid var(--grid-line);
+    color:var(--paper); font-family:'IBM Plex Mono', monospace; font-size:12px; padding:7px 9px;
+  }
+  .add-row button{
+    background:var(--amber); border:none; color:#3a1e00; font-family:'IBM Plex Mono', monospace;
+    font-size:12px; font-weight:600; padding:7px 14px; cursor:pointer; white-space:nowrap;
+  }
+  .add-row button:hover{ filter:brightness(1.08); }
+  .pub-check{
+    flex:1 1 100%; display:flex; align-items:center; gap:7px;
+    font-size:11px; color:var(--paper-dim); font-family:'IBM Plex Sans', sans-serif;
+    user-select:none; cursor:pointer;
+  }
+  .pub-check input{ accent-color:var(--amber); width:14px; height:14px; cursor:pointer; }
+  .pub-hint{
+    flex:1 1 100%; font-size:10.5px; color:var(--paper-dim); font-style:italic; margin-top:-2px;
+  }
+
+  .status{ font-size:11px; color:var(--paper-dim); text-align:center; margin-top:18px; font-family:'IBM Plex Mono', monospace; }
+
+  .rep-access{ margin-top:32px; border-top:1px dashed var(--grid-line); padding-top:18px; text-align:center; }
+  .rep-toggle{
+    background:none; border:1px solid var(--cyan-soft); color:var(--cyan);
+    font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:1px;
+    text-transform:uppercase; padding:8px 16px; cursor:pointer;
+  }
+  .rep-toggle:hover{ background:rgba(111,216,238,0.08); }
+  .rep-login{ display:none; justify-content:center; gap:8px; margin-top:12px; }
+  .rep-login.open{ display:flex; }
+  .rep-login input{
+    background:rgba(0,0,0,0.3); border:1px solid var(--grid-line); color:var(--paper);
+    font-family:'IBM Plex Mono', monospace; font-size:13px; padding:8px 10px; width:180px;
+  }
+  .rep-login button{
+    background:var(--amber); border:none; color:#3a1e00; font-family:'IBM Plex Mono', monospace;
+    font-weight:600; font-size:12px; padding:8px 14px; cursor:pointer;
+  }
+  .rep-error{ color:var(--danger); font-size:11px; margin-top:8px; display:none; }
+
+  @media (max-width: 640px){
+    .hero{ height:56vw; min-height:200px; }
+    .hero-content{ padding:18px 16px 18px; }
+    .hero-tag{ font-size:10px; padding:3px 8px; }
+
+    .wrap{ padding:18px 12px 40px; }
+
+    .titleblock{ padding:14px 16px; flex-direction:column; align-items:flex-start; margin-bottom:20px; }
+    .titleblock h1{ font-size:17px; line-height:1.35; }
+    .titleblock .sub{ font-size:12px; }
+    .titleblock .meta{ text-align:left; font-size:10px; }
+
+    .edit-banner{ flex-direction:column; gap:8px; font-size:11px; padding:10px 12px; }
+
+    .pipe-panel{ padding:14px 16px; margin-bottom:20px; }
+    .pipe-panel .label-row{ flex-direction:column; align-items:flex-start; gap:2px; }
+    .pipe-panel .label-row .figs{ font-size:13px; }
+    .pipe-panel .label-row .pct{ font-size:24px; }
+    .sprinkler{ flex-direction:column; gap:2px; }
+
+    .grid-title{ flex-direction:column; align-items:flex-start; gap:2px; }
+
+    .batch-card{ padding:12px 14px; }
+    .batch-card .row1{ flex-direction:column; align-items:flex-start; gap:4px; margin-bottom:10px; }
+    .batch-card .year{ font-size:15px; }
+    .batch-card .totals{ font-size:11px; }
+
+    .entry-row{ flex-wrap:wrap; }
+    .entry-row .who{ flex:1 1 100%; }
+    .entry-row .who .date{ display:block; margin-left:0; margin-top:2px; }
+    .entry-row .amt{ order:2; }
+    .entry-row .del{ order:3; padding:5px 10px; }
+
+    .add-row{ flex-direction:column; }
+    .add-row input[type=text], .add-row input[type=number]{ flex:none; width:100%; font-size:16px; padding:10px; }
+    .add-row button{ padding:10px 14px; font-size:13px; }
+
+    .rep-login{ flex-direction:column; align-items:stretch; }
+    .rep-login input{ width:100%; font-size:16px; }
+    .rep-toggle{ width:100%; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <img class="hero-img" src="garden-hero.jpg" alt="Rendered view of the GECT Thrissur campus front garden renovation">
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <span class="hero-tag">WRHI Alumni Initiative</span>
+    <h2>Garden Renovation, GEC Thrissur</h2>
+    <p>A renewed front lawn and entrance for the college — funded batch by batch by WRHI alumni giving back.</p>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="titleblock">
+    <div>
+      <h1>WRHI GECT Irrigation System — Fund Tracker</h1>
+      <div class="sub">Government Engineering College, Thrissur · WRHI Alumni . Giving Back to College</div>
+    </div>
+    <div class="meta">
+      BATCHES 2010–2024<br>
+      TARGET ₹12,000 / BATCH
+    </div>
+  </div>
+
+  <div class="edit-banner" id="editBanner">
+    <span>BATCH REP MODE — you can add or remove individual contribution entries</span>
+    <button id="lockBtn">Lock</button>
+  </div>
+
+  <div class="pipe-panel">
+    <div class="label-row">
+      <div class="figs" id="overallFigs">₹0 collected of ₹1,60,000</div>
+      <div class="pct" id="overallPct">0%</div>
+    </div>
+    <div class="pipe"><div class="pipe-fill" id="overallFill"></div></div>
+    <div class="sprinkler">
+      <span id="batchesFullyFunded">0 of 15 batches fully funded</span>
+      <span>Overall target: ₹1,60,000</span>
+    </div>
+  </div>
+
+  <div class="source-note">Every figure below is the sum of individually logged contributions. Contributor names are kept private by default and shown as a generic supporter tag — a contributor's name only appears if they've chosen to make it public.</div>
+
+  <div class="grid-title">
+    <span>Batch-wise Progress</span>
+    <span class="hint" id="gridHint">View only</span>
+  </div>
+  <div class="batches" id="batchGrid"></div>
+
+  <div class="status" id="statusLine">Loading saved data…</div>
+
+  <div class="rep-access">
+    <button class="rep-toggle" id="repToggle">Batch Rep Access</button>
+    <div class="rep-login" id="repLogin">
+      <input type="password" id="passcodeInput" placeholder="Enter rep password">
+      <button id="passcodeSubmit">Unlock</button>
+    </div>
+    <div class="rep-error" id="repError">Incorrect password.</div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
+import {
+  getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
+import {
+  getDatabase, ref, onValue, set, remove
+} from "https://www.gstatic.com/firebasejs/12.17.1/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCyHoJ8sFA78aVLYftvbjXeHXKHHruSGeY",
+  authDomain: "wrhi-gect.firebaseapp.com",
+  databaseURL: "https://wrhi-gect-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "wrhi-gect",
+  storageBucket: "wrhi-gect.firebasestorage.app",
+  messagingSenderId: "499119522943",
+  appId: "1:499119522943:web:e115c0e0cddf3bbff12b4a"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getDatabase(app);
+
+// Shared rep account — one login for all batch reps.
+// The real secret is the password set on this account in Firebase Auth,
+// never stored in this file.
+const REP_EMAIL = 'reps@gect-irrigation.local';
+
+const START_YEAR = 2010;
+const END_YEAR = 2024;
+const BATCH_TARGET = 12000;
+const OVERALL_TARGET = 160000;
+
+let batches = {};   // { [year]: [{id, name, amount, ts}, ...] }
+let editMode = false;
+
+function years(){
+  const arr = [];
+  for(let y = START_YEAR; y <= END_YEAR; y++) arr.push(y);
+  return arr;
+}
+
+function defaultBatches(){
+  const obj = {};
+  years().forEach(y => { obj[y] = []; });
+  return obj;
+}
+
+function fmt(n){ return '₹' + Number(n).toLocaleString('en-IN'); }
+
+function batchTotal(y){
+  return (batches[y] || []).reduce((sum, e) => sum + Number(e.amount || 0), 0);
+}
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+// Stable, non-reversible display label for entries that aren't public.
+// Derived from the entry id, so the same entry always gets the same tag.
+function supporterTag(id){
+  let hash = 0;
+  for(let i = 0; i < id.length; i++){ hash = (hash * 31 + id.charCodeAt(i)) >>> 0; }
+  const code = (hash % 9000) + 1000;
+  return `Supporter #${code}`;
+}
+
+function normalizeSnapshot(val){
+  const obj = defaultBatches();
+  if(val){
+    years().forEach(y => {
+      const yearNode = val[y];
+      if(yearNode){
+        obj[y] = Object.keys(yearNode).map(id => ({ id, ...yearNode[id] }));
+      }
+    });
+  }
+  return obj;
+}
+
+function loadData(){
+  const statusEl = document.getElementById('statusLine');
+  batches = defaultBatches();
+  onValue(ref(db, 'batches'), (snapshot) => {
+    batches = normalizeSnapshot(snapshot.val());
+    statusEl.textContent = 'Live · shared across everyone with this link';
+    render();
+  }, (err) => {
+    statusEl.textContent = 'Could not connect — check connection and try again.';
+  });
+}
+
+function render(){
+  renderOverall();
+  renderGrid();
+}
+
+function renderOverall(){
+  let totalCollected = 0, fullyFunded = 0;
+  years().forEach(y => {
+    const t = batchTotal(y);
+    totalCollected += t;
+    if(t >= BATCH_TARGET) fullyFunded++;
+  });
+  const pct = OVERALL_TARGET > 0 ? Math.min(100, Math.round((totalCollected/OVERALL_TARGET)*100)) : 0;
+  document.getElementById('overallFigs').textContent = `${fmt(totalCollected)} collected of ${fmt(OVERALL_TARGET)}`;
+  document.getElementById('overallPct').textContent = pct + '%';
+  document.getElementById('overallFill').style.width = pct + '%';
+  document.getElementById('batchesFullyFunded').textContent = `${fullyFunded} of ${years().length} batches fully funded`;
+}
+
+function renderGrid(){
+  const grid = document.getElementById('batchGrid');
+  grid.innerHTML = '';
+  years().forEach(y => {
+    const entries = batches[y] || [];
+    const total = batchTotal(y);
+    const pct = Math.min(100, Math.round((total/BATCH_TARGET)*100));
+    const done = total >= BATCH_TARGET;
+
+    const entryRows = entries.length
+      ? entries.slice().sort((a,b) => b.ts - a.ts).map(e => {
+          const isPublic = !!(e.public && e.name);
+          const label = isPublic ? escapeHtml(e.name) : supporterTag(e.id);
+          // In rep/edit mode, show the real name plus its visibility status
+          // so reps can manage entries; the public front page never does.
+          const nameHtml = editMode
+            ? `${e.name ? escapeHtml(e.name) : 'No name given'}<span class="vis-tag ${e.public ? 'is-public' : ''}">${e.public ? 'Public' : 'Private'}</span>`
+            : label;
+          return `
+          <div class="entry-row">
+            <span class="who">${nameHtml}<span class="date">${new Date(e.ts).toLocaleDateString('en-IN', {day:'numeric', month:'short'})}</span></span>
+            <span class="amt">${fmt(e.amount)}</span>
+            ${editMode ? `<button class="del" data-year="${y}" data-id="${e.id}">Remove</button>` : ''}
+          </div>
+        `;
+        }).join('')
+      : '<div class="no-entries">No contributions logged yet.</div>';
+
+    const addForm = editMode ? `
+      <div class="add-row">
+        <input type="text" placeholder="Contributor name (optional)" id="name-${y}">
+        <input type="number" min="1" placeholder="₹ amount" id="amt-${y}">
+        <button data-add-year="${y}">Add</button>
+        <label class="pub-check" for="pub-${y}">
+          <input type="checkbox" id="pub-${y}">
+          Show this contributor's name publicly
+        </label>
+        <div class="pub-hint">Unchecked entries show as an anonymous "Supporter" tag on the front page.</div>
+      </div>
+    ` : '';
+
+    const card = document.createElement('div');
+    card.className = 'batch-card';
+    card.innerHTML = `
+      <div class="row1">
+        <div class="year">Batch ${y}</div>
+        <div class="totals"><b>${fmt(total)}</b> of ${fmt(BATCH_TARGET)} · ${pct}% funded</div>
+      </div>
+      <div class="mini-pipe"><div class="mini-fill ${done ? 'done' : ''}" style="width:${pct}%"></div></div>
+      <details class="entries">
+        <summary>${entries.length} contribution${entries.length === 1 ? '' : 's'}</summary>
+        <div class="entry-list">${entryRows}</div>
+        ${addForm}
+      </details>
+    `;
+
+    if(editMode){
+      card.querySelector(`[data-add-year="${y}"]`).addEventListener('click', () => addEntry(y));
+      card.querySelector(`#amt-${y}`).addEventListener('keydown', (ev) => { if(ev.key === 'Enter') addEntry(y); });
+      card.querySelectorAll('.del').forEach(btn => {
+        btn.addEventListener('click', () => removeEntry(btn.dataset.year, btn.dataset.id));
+      });
+      card.querySelector('details').open = true;
+    }
+
+    grid.appendChild(card);
+  });
+}
+
+async function addEntry(year){
+  const nameInput = document.getElementById(`name-${year}`);
+  const amtInput = document.getElementById(`amt-${year}`);
+  const pubInput = document.getElementById(`pub-${year}`);
+  const amount = parseFloat(amtInput.value);
+  if(!amount || amount <= 0){ amtInput.focus(); return; }
+  const name = nameInput.value.trim();
+  const isPublic = !!(pubInput && pubInput.checked && name);
+  const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  const statusEl = document.getElementById('statusLine');
+
+  statusEl.textContent = 'Saving…';
+  try{
+    await set(ref(db, `batches/${year}/${id}`), { name, amount, public: isPublic, ts: Date.now() });
+    // onValue listener re-renders with the confirmed data.
+  }catch(e){
+    statusEl.textContent = 'Could not save — check connection and try again.';
+  }
+}
+
+async function removeEntry(year, id){
+  const statusEl = document.getElementById('statusLine');
+  statusEl.textContent = 'Removing…';
+  try{
+    await remove(ref(db, `batches/${year}/${id}`));
+  }catch(e){
+    statusEl.textContent = 'Could not remove — check connection and try again.';
+  }
+}
+
+function setEditMode(on){
+  editMode = on;
+  document.getElementById('editBanner').classList.toggle('open', on);
+  document.getElementById('gridHint').textContent = on ? 'Editing — changes save automatically' : 'View only';
+  document.getElementById('repToggle').style.display = on ? 'none' : 'inline-block';
+  document.getElementById('repLogin').classList.remove('open');
+  document.getElementById('repError').style.display = 'none';
+  render();
+}
+
+document.getElementById('repToggle').addEventListener('click', () => {
+  document.getElementById('repLogin').classList.toggle('open');
+});
+document.getElementById('passcodeSubmit').addEventListener('click', tryUnlock);
+document.getElementById('passcodeInput').addEventListener('keydown', (e) => { if(e.key === 'Enter') tryUnlock(); });
+document.getElementById('lockBtn').addEventListener('click', () => {
+  signOut(auth).catch(() => {});
+});
+
+async function tryUnlock(){
+  const input = document.getElementById('passcodeInput');
+  const submitBtn = document.getElementById('passcodeSubmit');
+  const errorEl = document.getElementById('repError');
+  errorEl.style.display = 'none';
+  submitBtn.disabled = true;
+  try{
+    await signInWithEmailAndPassword(auth, REP_EMAIL, input.value);
+    input.value = '';
+    // onAuthStateChanged below flips editMode on once Firebase confirms.
+  }catch(e){
+    errorEl.style.display = 'block';
+  }finally{
+    submitBtn.disabled = false;
+  }
+}
+
+// The real gate: editMode only turns on when Firebase confirms a signed-in
+// session, and turns off the moment that session ends (e.g. token expiry,
+// sign-out on another tab). The database rules enforce this server-side too.
+onAuthStateChanged(auth, (user) => {
+  setEditMode(!!user);
+});
+
+loadData();
+</script>
+</body>
+</html>
