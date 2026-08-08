@@ -168,12 +168,6 @@
   }
   .entry-row .who{ color:var(--paper); font-family:'IBM Plex Sans', sans-serif; }
   .entry-row .who .date{ color:var(--paper-dim); font-size:10px; margin-left:6px; }
-  .entry-row .who .vis-tag{
-    font-family:'IBM Plex Mono', monospace; font-size:9px; letter-spacing:0.5px;
-    text-transform:uppercase; margin-left:7px; padding:1px 5px; border-radius:2px;
-    color:var(--paper-dim); border:1px solid var(--grid-line);
-  }
-  .entry-row .who .vis-tag.is-public{ color:var(--ok); border-color:var(--ok); }
   .entry-row .amt{ font-family:'IBM Plex Mono', monospace; color:var(--amber); white-space:nowrap; }
   .entry-row .del{
     background:none; border:1px solid var(--danger); color:var(--danger);
@@ -195,15 +189,6 @@
     font-size:12px; font-weight:600; padding:7px 14px; cursor:pointer; white-space:nowrap;
   }
   .add-row button:hover{ filter:brightness(1.08); }
-  .pub-check{
-    flex:1 1 100%; display:flex; align-items:center; gap:7px;
-    font-size:11px; color:var(--paper-dim); font-family:'IBM Plex Sans', sans-serif;
-    user-select:none; cursor:pointer;
-  }
-  .pub-check input{ accent-color:var(--amber); width:14px; height:14px; cursor:pointer; }
-  .pub-hint{
-    flex:1 1 100%; font-size:10.5px; color:var(--paper-dim); font-style:italic; margin-top:-2px;
-  }
 
   .status{ font-size:11px; color:var(--paper-dim); text-align:center; margin-top:18px; font-family:'IBM Plex Mono', monospace; }
 
@@ -311,7 +296,7 @@
     </div>
   </div>
 
-  <div class="source-note">Every figure below is the sum of individually logged contributions. Contributor names are kept private by default and shown as a generic supporter tag — a contributor's name only appears if they've chosen to make it public.</div>
+  <div class="source-note">Every figure below is the sum of individually logged contributions — expand a batch to see who's given what. Entries without a name are shown as Anonymous.</div>
 
   <div class="grid-title">
     <span>Batch-wise Progress</span>
@@ -404,15 +389,6 @@ function escapeHtml(str){
   return div.innerHTML;
 }
 
-// Stable, non-reversible display label for entries that aren't public.
-// Derived from the entry id, so the same entry always gets the same tag.
-function supporterTag(id){
-  let hash = 0;
-  for(let i = 0; i < id.length; i++){ hash = (hash * 31 + id.charCodeAt(i)) >>> 0; }
-  const code = (hash % 9000) + 1000;
-  return `Supporter #${code}`;
-}
-
 function normalizeSnapshot(val){
   const obj = defaultBatches();
   if(val){
@@ -470,16 +446,10 @@ function renderGrid(){
 
     const entryRows = entries.length
       ? entries.slice().sort((a,b) => b.ts - a.ts).map(e => {
-          const isPublic = !!(e.public && e.name);
-          const label = isPublic ? escapeHtml(e.name) : supporterTag(e.id);
-          // In rep/edit mode, show the real name plus its visibility status
-          // so reps can manage entries; the public front page never does.
-          const nameHtml = editMode
-            ? `${e.name ? escapeHtml(e.name) : 'No name given'}<span class="vis-tag ${e.public ? 'is-public' : ''}">${e.public ? 'Public' : 'Private'}</span>`
-            : label;
+          const displayName = e.name ? escapeHtml(e.name) : 'Anonymous';
           return `
           <div class="entry-row">
-            <span class="who">${nameHtml}<span class="date">${new Date(e.ts).toLocaleDateString('en-IN', {day:'numeric', month:'short'})}</span></span>
+            <span class="who">${displayName}<span class="date">${new Date(e.ts).toLocaleDateString('en-IN', {day:'numeric', month:'short'})}</span></span>
             <span class="amt">${fmt(e.amount)}</span>
             ${editMode ? `<button class="del" data-year="${y}" data-id="${e.id}">Remove</button>` : ''}
           </div>
@@ -489,14 +459,9 @@ function renderGrid(){
 
     const addForm = editMode ? `
       <div class="add-row">
-        <input type="text" placeholder="Contributor name (optional)" id="name-${y}">
+        <input type="text" placeholder="Contributor name (leave blank for Anonymous)" id="name-${y}">
         <input type="number" min="1" placeholder="₹ amount" id="amt-${y}">
         <button data-add-year="${y}">Add</button>
-        <label class="pub-check" for="pub-${y}">
-          <input type="checkbox" id="pub-${y}">
-          Show this contributor's name publicly
-        </label>
-        <div class="pub-hint">Unchecked entries show as an anonymous "Supporter" tag on the front page.</div>
       </div>
     ` : '';
 
@@ -531,17 +496,15 @@ function renderGrid(){
 async function addEntry(year){
   const nameInput = document.getElementById(`name-${year}`);
   const amtInput = document.getElementById(`amt-${year}`);
-  const pubInput = document.getElementById(`pub-${year}`);
   const amount = parseFloat(amtInput.value);
   if(!amount || amount <= 0){ amtInput.focus(); return; }
   const name = nameInput.value.trim();
-  const isPublic = !!(pubInput && pubInput.checked && name);
   const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
   const statusEl = document.getElementById('statusLine');
 
   statusEl.textContent = 'Saving…';
   try{
-    await set(ref(db, `batches/${year}/${id}`), { name, amount, public: isPublic, ts: Date.now() });
+    await set(ref(db, `batches/${year}/${id}`), { name, amount, ts: Date.now() });
     // onValue listener re-renders with the confirmed data.
   }catch(e){
     statusEl.textContent = 'Could not save — check connection and try again.';
