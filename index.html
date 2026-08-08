@@ -523,12 +523,19 @@ async function addEntry(year){
   const name = nameInput.value.trim();
   const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
   const statusEl = document.getElementById('statusLine');
+  const addBtn = document.querySelector(`[data-add-year="${year}"]`);
 
   statusEl.textContent = 'Saving…';
+  if(addBtn) addBtn.disabled = true;
   try{
     await set(ref(db, `batches/${year}/${id}`), { name, amount, ts: Date.now() });
+    statusEl.textContent = 'Saved · shared live with everyone who opens this page';
+    nameInput.value = '';
+    amtInput.value = '';
   }catch(e){
-    statusEl.textContent = 'Could not save — check connection and try again.';
+    statusEl.textContent = 'Could not save — check your connection and try again.';
+  }finally{
+    if(addBtn) addBtn.disabled = false;
   }
 }
 
@@ -537,8 +544,9 @@ async function removeEntry(year, id){
   statusEl.textContent = 'Removing…';
   try{
     await remove(ref(db, `batches/${year}/${id}`));
+    statusEl.textContent = 'Removed · shared live with everyone who opens this page';
   }catch(e){
-    statusEl.textContent = 'Could not remove — check connection and try again.';
+    statusEl.textContent = 'Could not remove — check your connection and try again.';
   }
 }
 
