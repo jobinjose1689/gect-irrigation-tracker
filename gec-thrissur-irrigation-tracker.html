@@ -205,6 +205,15 @@
     background:rgba(0,0,0,0.3); border:1px solid var(--grid-line); color:var(--paper);
     font-family:'IBM Plex Mono', monospace; font-size:13px; padding:8px 10px; width:180px;
   }
+  .rep-login .pw-wrap{ position:relative; display:inline-flex; }
+  .rep-login .pw-wrap input{ padding-right:34px; width:180px; }
+  .rep-login .pw-toggle{
+    position:absolute; right:0; top:0; bottom:0; width:30px;
+    background:none; border:none; color:var(--paper-dim); cursor:pointer;
+    font-family:'IBM Plex Mono', monospace; font-size:12px; padding:0;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .rep-login .pw-toggle:hover{ color:var(--cyan); }
   .rep-login button{
     background:var(--amber); border:none; color:#3a1e00; font-family:'IBM Plex Mono', monospace;
     font-weight:600; font-size:12px; padding:8px 14px; cursor:pointer;
@@ -249,6 +258,8 @@
     .add-row button{ padding:10px 14px; font-size:13px; }
 
     .rep-login{ flex-direction:column; align-items:stretch; }
+    .rep-login .pw-wrap{ width:100%; }
+    .rep-login .pw-wrap input{ width:100%; font-size:16px; }
     .rep-login input{ width:100%; font-size:16px; }
     .rep-toggle{ width:100%; }
   }
@@ -309,7 +320,10 @@
   <div class="rep-access">
     <button class="rep-toggle" id="repToggle">Batch Rep Access</button>
     <div class="rep-login" id="repLogin">
-      <input type="password" id="passcodeInput" placeholder="Enter rep password">
+      <div class="pw-wrap">
+        <input type="password" id="passcodeInput" placeholder="Enter rep password">
+        <button type="button" class="pw-toggle" id="pwToggle" aria-label="Show password">👁</button>
+      </div>
       <button id="passcodeSubmit">Unlock</button>
     </div>
     <div class="rep-error" id="repError">Incorrect password.</div>
@@ -533,6 +547,14 @@ function setEditMode(on){
 
 document.getElementById('repToggle').addEventListener('click', () => {
   document.getElementById('repLogin').classList.toggle('open');
+});
+document.getElementById('pwToggle').addEventListener('click', () => {
+  const input = document.getElementById('passcodeInput');
+  const btn = document.getElementById('pwToggle');
+  const showing = input.type === 'text';
+  input.type = showing ? 'password' : 'text';
+  btn.textContent = showing ? '👁' : '🙈';
+  btn.setAttribute('aria-label', showing ? 'Show password' : 'Hide password');
 });
 document.getElementById('passcodeSubmit').addEventListener('click', tryUnlock);
 document.getElementById('passcodeInput').addEventListener('keydown', (e) => { if(e.key === 'Enter') tryUnlock(); });
