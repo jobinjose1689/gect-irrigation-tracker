@@ -32,8 +32,6 @@
     min-height:100vh;
     -webkit-font-smoothing:antialiased;
   }
-
-  /* ---------- Hero ---------- */
   .hero{
     position:relative; width:100%; height:min(56vw, 460px); min-height:260px;
     overflow:hidden; border-bottom:2px solid var(--cyan-soft);
@@ -65,9 +63,7 @@
     margin:0; max-width:640px; font-size:clamp(12.5px, 1.6vw, 15px);
     color:var(--paper-dim); line-height:1.5;
   }
-
   .wrap{ max-width:980px; margin:0 auto; padding:32px 20px 60px; }
-
   .titleblock{
     border:1px solid var(--grid-line); border-top:3px solid var(--cyan-soft);
     background:linear-gradient(180deg, rgba(20,58,90,0.55), rgba(10,39,64,0.6));
@@ -85,7 +81,6 @@
     text-align:right; font-family:'IBM Plex Mono', monospace;
     font-size:11px; color:var(--cyan); line-height:1.6;
   }
-
   .edit-banner{
     display:none; background:rgba(242,153,74,0.12); border:1px solid var(--amber);
     color:var(--amber); font-family:'IBM Plex Mono', monospace; font-size:12px;
@@ -97,7 +92,6 @@
     background:none; border:1px solid var(--amber); color:var(--amber);
     font-family:'IBM Plex Mono', monospace; font-size:11px; padding:4px 10px; cursor:pointer;
   }
-
   .pipe-panel{
     border:1px solid var(--grid-line); background:rgba(18,54,85,0.5);
     padding:20px 24px; margin-bottom:28px; border-radius:2px;
@@ -127,16 +121,13 @@
     font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--paper-dim);
     margin-top:6px; display:flex; justify-content:space-between;
   }
-
   .grid-title{
     font-family:'IBM Plex Mono', monospace; font-size:12px; letter-spacing:2px;
     color:var(--cyan-soft); text-transform:uppercase; margin:0 0 12px 2px;
     display:flex; justify-content:space-between; align-items:baseline;
   }
   .grid-title .hint{ text-transform:none; letter-spacing:0; color:var(--paper-dim); font-size:11px; }
-
   .source-note{ font-size:11px; color:var(--paper-dim); font-style:italic; margin-bottom:24px; }
-
   .batches{ display:flex; flex-direction:column; gap:12px; margin-bottom:20px; }
   .batch-card{
     border:1px solid var(--grid-line); background:rgba(10,39,64,0.55); padding:14px 18px;
@@ -150,7 +141,6 @@
   .mini-pipe{ height:9px; border:1px solid var(--cyan-soft); border-radius:5px; background:rgba(0,0,0,0.25); overflow:hidden; margin-bottom:10px; }
   .mini-fill{ height:100%; background:var(--cyan); width:0%; transition:width .4s ease; }
   .mini-fill.done{ background:var(--ok); }
-
   details.entries{ margin-top:2px; }
   details.entries summary{
     cursor:pointer; font-family:'IBM Plex Mono', monospace; font-size:11px;
@@ -159,7 +149,6 @@
   details.entries summary::-webkit-details-marker{ display:none; }
   details.entries summary::before{ content:'▸ '; }
   details.entries[open] summary::before{ content:'▾ '; }
-
   .entry-list{ margin-top:8px; display:flex; flex-direction:column; gap:4px; }
   .entry-row{
     display:flex; justify-content:space-between; align-items:center; gap:8px;
@@ -174,7 +163,6 @@
     font-size:10px; padding:2px 6px; cursor:pointer; font-family:'IBM Plex Mono', monospace;
   }
   .no-entries{ font-size:11px; color:var(--paper-dim); font-style:italic; padding:4px 0; }
-
   .add-row{ display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; align-items:center; }
   .add-row input[type=text]{
     flex:2; min-width:140px; background:rgba(0,0,0,0.3); border:1px solid var(--grid-line);
@@ -189,10 +177,7 @@
     font-size:12px; font-weight:600; padding:7px 14px; cursor:pointer; white-space:nowrap;
   }
   .add-row button:hover{ filter:brightness(1.08); }
-
   .status{ font-size:11px; color:var(--paper-dim); text-align:center; margin-top:18px; font-family:'IBM Plex Mono', monospace; }
-
-  /* ---------- Batch Rep FAB ---------- */
   .rep-fab-wrap{
     position:fixed; right:18px; bottom:18px; z-index:40;
     display:flex; flex-direction:column; align-items:flex-end; gap:10px;
@@ -210,7 +195,6 @@
   .rep-fab:active{ transform:translateY(0); }
   .rep-fab .icon{ font-size:14px; line-height:1; }
   .rep-fab.is-open{ background:linear-gradient(135deg, #3E93AC, var(--cyan-soft)); color:#062633; box-shadow:0 6px 18px -4px rgba(111,216,238,0.4), 0 2px 6px rgba(0,0,0,0.35); }
-
   .rep-popover{
     display:none; flex-direction:column; gap:10px;
     background:rgba(10,29,48,0.97); border:1px solid var(--grid-line);
@@ -242,44 +226,34 @@
   }
   .rep-popover button#passcodeSubmit:hover{ filter:brightness(1.08); }
   .rep-error{ color:var(--danger); font-size:11px; display:none; }
-
   @media (max-width: 640px){
     .hero{ height:56vw; min-height:200px; }
     .hero-content{ padding:18px 16px 18px; }
     .hero-tag{ font-size:10px; padding:3px 8px; }
-
     .wrap{ padding:18px 12px 40px; }
-
     .titleblock{ padding:14px 16px; flex-direction:column; align-items:flex-start; margin-bottom:20px; }
     .titleblock h1{ font-size:17px; line-height:1.35; }
     .titleblock .sub{ font-size:12px; }
     .titleblock .meta{ text-align:left; font-size:10px; }
-
     .edit-banner{ flex-direction:column; gap:8px; font-size:11px; padding:10px 12px; }
-
     .pipe-panel{ padding:14px 16px; margin-bottom:20px; }
     .pipe-panel .label-row{ flex-direction:column; align-items:flex-start; gap:2px; }
     .pipe-panel .label-row .figs{ font-size:13px; }
     .pipe-panel .label-row .pct{ font-size:24px; }
     .sprinkler{ flex-direction:column; gap:2px; }
-
     .grid-title{ flex-direction:column; align-items:flex-start; gap:2px; }
-
     .batch-card{ padding:12px 14px; }
     .batch-card .row1{ flex-direction:column; align-items:flex-start; gap:4px; margin-bottom:10px; }
     .batch-card .year{ font-size:15px; }
     .batch-card .totals{ font-size:11px; }
-
     .entry-row{ flex-wrap:wrap; }
     .entry-row .who{ flex:1 1 100%; }
     .entry-row .who .date{ display:block; margin-left:0; margin-top:2px; }
     .entry-row .amt{ order:2; }
     .entry-row .del{ order:3; padding:5px 10px; }
-
     .add-row{ flex-direction:column; }
     .add-row input[type=text], .add-row input[type=number]{ flex:none; width:100%; font-size:16px; padding:10px; }
     .add-row button{ padding:10px 14px; font-size:13px; }
-
     .rep-fab-wrap{ right:14px; bottom:14px; }
     .rep-fab{ padding:11px 16px; font-size:11px; }
     .rep-popover{ width:min(80vw, 250px); }
@@ -300,14 +274,13 @@
 </div>
 
 <div class="wrap">
-
   <div class="titleblock">
     <div>
       <h1>WRHI GECT Irrigation System — Fund Tracker</h1>
       <div class="sub">Government Engineering College, Thrissur · WRHI Alumni . Giving Back to College</div>
     </div>
     <div class="meta">
-      BATCHES 2010–12 TO 2022–24<br>
+      BATCHES 2010–12 TO 2023–25<br>
       TARGET ₹12,000 / BATCH
     </div>
   </div>
@@ -376,9 +349,6 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
 
-// Each batch rep signs in with a simple email built from their batch key,
-// e.g. 2013@gectwater.local — they never need to type or see this, they
-// just pick their batch from the dropdown and enter their password.
 function emailForBatchKey(key){
   return key === 'admin' ? 'admin@gectwater.local' : `${key}@gectwater.local`;
 }
@@ -387,15 +357,10 @@ let editableKeys = new Set();
 let isAdmin = false;
 
 const START_YEAR = 2010;
-const END_YEAR = 2022;
+const END_YEAR = 2023;
 const BATCH_TARGET = 12000;
 const OVERALL_TARGET = 160000;
 
-// A batch's key is what it's stored under in Firebase (never changes once
-// data exists under it). Its label is what's shown on screen, e.g. a batch
-// admitted in 2010 is labelled "2010–12" for the year they passed out.
-// The Staff/Research Scholars group is tracked the same way as a batch,
-// just keyed by 'staff' instead of a year.
 function passOutLabel(y){
   const passOutYY = String((y + 2) % 100).padStart(2, '0');
   return `${y}–${passOutYY}`;
@@ -404,13 +369,13 @@ function passOutLabel(y){
 function batchDefs(){
   const arr = [];
   for(let y = START_YEAR; y <= END_YEAR; y++){
-    arr.push({ key: String(y), label: passOutLabel(y) });
+    arr.push({ key: String(y), label: passOutLabel(y), noTarget: false });
   }
-  arr.push({ key: 'staff', label: 'Staff / Research Scholars' });
+  arr.push({ key: 'staff', label: 'Staff / Research Scholars', noTarget: true });
   return arr;
 }
 
-let batches = {};   // { [batchKey]: [{id, name, amount, ts}, ...] }
+let batches = {};
 let editMode = false;
 
 function defaultBatches(){
@@ -464,16 +429,18 @@ function render(){
 function renderOverall(){
   let totalCollected = 0, fullyFunded = 0;
   const defs = batchDefs();
+  const targeted = defs.filter(b => !b.noTarget);
   defs.forEach(b => {
-    const t = batchTotal(b.key);
-    totalCollected += t;
-    if(t >= BATCH_TARGET) fullyFunded++;
+    totalCollected += batchTotal(b.key);
+  });
+  targeted.forEach(b => {
+    if(batchTotal(b.key) >= BATCH_TARGET) fullyFunded++;
   });
   const pct = OVERALL_TARGET > 0 ? Math.min(100, Math.round((totalCollected/OVERALL_TARGET)*100)) : 0;
   document.getElementById('overallFigs').textContent = `${fmt(totalCollected)} collected of ${fmt(OVERALL_TARGET)}`;
   document.getElementById('overallPct').textContent = pct + '%';
   document.getElementById('overallFill').style.width = pct + '%';
-  document.getElementById('batchesFullyFunded').textContent = `${fullyFunded} of ${defs.length} batches fully funded`;
+  document.getElementById('batchesFullyFunded').textContent = `${fullyFunded} of ${targeted.length} batches fully funded`;
 }
 
 function renderGrid(){
@@ -488,7 +455,7 @@ function renderGrid(){
     const entries = batches[y] || [];
     const total = batchTotal(y);
     const pct = Math.min(100, Math.round((total/BATCH_TARGET)*100));
-    const done = total >= BATCH_TARGET;
+    const done = !b.noTarget && total >= BATCH_TARGET;
     const canEditThis = editMode && (isAdmin || editableKeys.has(y));
 
     const entryRows = entries.length
@@ -512,14 +479,22 @@ function renderGrid(){
       </div>
     ` : '';
 
+    const totalsLine = b.noTarget
+      ? `<div class="totals"><b>${fmt(total)}</b> raised</div>`
+      : `<div class="totals"><b>${fmt(total)}</b> of ${fmt(BATCH_TARGET)} · ${pct}% funded</div>`;
+
+    const miniPipe = b.noTarget
+      ? ''
+      : `<div class="mini-pipe"><div class="mini-fill ${done ? 'done' : ''}" style="width:${pct}%"></div></div>`;
+
     const card = document.createElement('div');
     card.className = 'batch-card';
     card.innerHTML = `
       <div class="row1">
         <div class="year">${y === 'staff' ? b.label : 'Batch ' + b.label}</div>
-        <div class="totals"><b>${fmt(total)}</b> of ${fmt(BATCH_TARGET)} · ${pct}% funded</div>
+        ${totalsLine}
       </div>
-      <div class="mini-pipe"><div class="mini-fill ${done ? 'done' : ''}" style="width:${pct}%"></div></div>
+      ${miniPipe}
       <details class="entries">
         <summary>${entries.length} contribution${entries.length === 1 ? '' : 's'}</summary>
         <div class="entry-list">${entryRows}</div>
@@ -552,7 +527,6 @@ async function addEntry(year){
   statusEl.textContent = 'Saving…';
   try{
     await set(ref(db, `batches/${year}/${id}`), { name, amount, ts: Date.now() });
-    // onValue listener re-renders with the confirmed data.
   }catch(e){
     statusEl.textContent = 'Could not save — check connection and try again.';
   }
@@ -640,7 +614,6 @@ async function tryUnlock(){
     const email = emailForBatchKey(batchSelect.value);
     await signInWithEmailAndPassword(auth, email, input.value);
     input.value = '';
-    // onAuthStateChanged below loads permissions and flips editMode on.
   }catch(e){
     errorEl.style.display = 'block';
   }finally{
@@ -648,11 +621,6 @@ async function tryUnlock(){
   }
 }
 
-// The real gate: editMode only turns on when Firebase confirms a signed-in
-// session, and turns off the moment that session ends (e.g. token expiry,
-// sign-out on another tab). The database rules enforce this server-side too
-// — each rep can only write to the batch(es) listed under their UID in
-// 'batchOwners', or every batch if their UID is listed under 'admins'.
 onAuthStateChanged(auth, async (user) => {
   if(user){
     await loadPermissions(user.uid);
