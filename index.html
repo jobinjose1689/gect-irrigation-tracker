@@ -192,33 +192,56 @@
 
   .status{ font-size:11px; color:var(--paper-dim); text-align:center; margin-top:18px; font-family:'IBM Plex Mono', monospace; }
 
-  .rep-access{ margin-top:32px; border-top:1px dashed var(--grid-line); padding-top:18px; text-align:center; }
-  .rep-toggle{
-    background:none; border:1px solid var(--cyan-soft); color:var(--cyan);
-    font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:1px;
-    text-transform:uppercase; padding:8px 16px; cursor:pointer;
+  /* ---------- Batch Rep FAB ---------- */
+  .rep-fab-wrap{
+    position:fixed; right:18px; bottom:18px; z-index:40;
+    display:flex; flex-direction:column; align-items:flex-end; gap:10px;
   }
-  .rep-toggle:hover{ background:rgba(111,216,238,0.08); }
-  .rep-login{ display:none; justify-content:center; gap:8px; margin-top:12px; }
-  .rep-login.open{ display:flex; }
-  .rep-login input{
+  .rep-fab{
+    display:flex; align-items:center; gap:8px;
+    background:linear-gradient(135deg, var(--amber), #e08432);
+    border:none; color:#3a1e00; font-family:'IBM Plex Mono', monospace;
+    font-weight:600; font-size:12px; letter-spacing:0.5px;
+    padding:12px 18px; border-radius:999px; cursor:pointer;
+    box-shadow:0 6px 18px -4px rgba(242,153,74,0.55), 0 2px 6px rgba(0,0,0,0.35);
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .rep-fab:hover{ transform:translateY(-2px); box-shadow:0 10px 22px -4px rgba(242,153,74,0.65), 0 3px 8px rgba(0,0,0,0.4); }
+  .rep-fab:active{ transform:translateY(0); }
+  .rep-fab .icon{ font-size:14px; line-height:1; }
+  .rep-fab.is-open{ background:linear-gradient(135deg, #3E93AC, var(--cyan-soft)); color:#062633; box-shadow:0 6px 18px -4px rgba(111,216,238,0.4), 0 2px 6px rgba(0,0,0,0.35); }
+
+  .rep-popover{
+    display:none; flex-direction:column; gap:10px;
+    background:rgba(10,29,48,0.97); border:1px solid var(--grid-line);
+    border-radius:10px; padding:16px; width:230px;
+    box-shadow:0 14px 32px -8px rgba(0,0,0,0.55);
+  }
+  .rep-popover.open{ display:flex; }
+  .rep-popover select{
     background:rgba(0,0,0,0.3); border:1px solid var(--grid-line); color:var(--paper);
-    font-family:'IBM Plex Mono', monospace; font-size:13px; padding:8px 10px; width:180px;
+    font-family:'IBM Plex Mono', monospace; font-size:12.5px; padding:8px 10px;
+    border-radius:6px; width:100%;
   }
-  .rep-login .pw-wrap{ position:relative; display:inline-flex; }
-  .rep-login .pw-wrap input{ padding-right:34px; width:180px; }
-  .rep-login .pw-toggle{
-    position:absolute; right:0; top:0; bottom:0; width:30px;
+  .rep-popover .pw-wrap{ position:relative; display:flex; width:100%; }
+  .rep-popover .pw-wrap input{ width:100%; }
+  .rep-popover input{
+    background:rgba(0,0,0,0.3); border:1px solid var(--grid-line); color:var(--paper);
+    font-family:'IBM Plex Mono', monospace; font-size:13px; padding:9px 34px 9px 11px;
+    border-radius:6px; width:100%;
+  }
+  .rep-popover .pw-toggle{
+    position:absolute; right:0; top:0; bottom:0; width:32px;
     background:none; border:none; color:var(--paper-dim); cursor:pointer;
-    font-family:'IBM Plex Mono', monospace; font-size:12px; padding:0;
-    display:flex; align-items:center; justify-content:center;
+    font-size:13px; padding:0; display:flex; align-items:center; justify-content:center;
   }
-  .rep-login .pw-toggle:hover{ color:var(--cyan); }
-  .rep-login button{
+  .rep-popover .pw-toggle:hover{ color:var(--cyan); }
+  .rep-popover button#passcodeSubmit{
     background:var(--amber); border:none; color:#3a1e00; font-family:'IBM Plex Mono', monospace;
-    font-weight:600; font-size:12px; padding:8px 14px; cursor:pointer;
+    font-weight:600; font-size:12px; padding:9px 14px; cursor:pointer; border-radius:6px;
   }
-  .rep-error{ color:var(--danger); font-size:11px; margin-top:8px; display:none; }
+  .rep-popover button#passcodeSubmit:hover{ filter:brightness(1.08); }
+  .rep-error{ color:var(--danger); font-size:11px; display:none; }
 
   @media (max-width: 640px){
     .hero{ height:56vw; min-height:200px; }
@@ -257,11 +280,10 @@
     .add-row input[type=text], .add-row input[type=number]{ flex:none; width:100%; font-size:16px; padding:10px; }
     .add-row button{ padding:10px 14px; font-size:13px; }
 
-    .rep-login{ flex-direction:column; align-items:stretch; }
-    .rep-login .pw-wrap{ width:100%; }
-    .rep-login .pw-wrap input{ width:100%; font-size:16px; }
-    .rep-login input{ width:100%; font-size:16px; }
-    .rep-toggle{ width:100%; }
+    .rep-fab-wrap{ right:14px; bottom:14px; }
+    .rep-fab{ padding:11px 16px; font-size:11px; }
+    .rep-popover{ width:min(80vw, 250px); }
+    .rep-popover input{ font-size:16px; }
   }
 </style>
 </head>
@@ -316,18 +338,19 @@
   <div class="batches" id="batchGrid"></div>
 
   <div class="status" id="statusLine">Loading saved data…</div>
+</div>
 
-  <div class="rep-access">
-    <button class="rep-toggle" id="repToggle">Batch Rep Access</button>
-    <div class="rep-login" id="repLogin">
-      <div class="pw-wrap">
-        <input type="password" id="passcodeInput" placeholder="Enter rep password">
-        <button type="button" class="pw-toggle" id="pwToggle" aria-label="Show password">👁</button>
-      </div>
-      <button id="passcodeSubmit">Unlock</button>
+<div class="rep-fab-wrap" id="repFabWrap">
+  <div class="rep-popover" id="repLogin">
+    <select id="repBatchSelect"></select>
+    <div class="pw-wrap">
+      <input type="password" id="passcodeInput" placeholder="Rep password">
+      <button type="button" class="pw-toggle" id="pwToggle" aria-label="Show password">👁</button>
     </div>
+    <button id="passcodeSubmit">Unlock</button>
     <div class="rep-error" id="repError">Incorrect password.</div>
   </div>
+  <button class="rep-fab" id="repToggle"><span class="icon">🔒</span>Batch Rep Access</button>
 </div>
 
 <script type="module">
@@ -336,7 +359,7 @@ import {
   getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
 import {
-  getDatabase, ref, onValue, set, remove
+  getDatabase, ref, onValue, get, set, remove
 } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-database.js";
 
 const firebaseConfig = {
@@ -353,10 +376,15 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
 
-// Shared rep account — one login for all batch reps.
-// The real secret is the password set on this account in Firebase Auth,
-// never stored in this file.
-const REP_EMAIL = 'reps@gect-irrigation.local';
+// Each batch rep signs in with a simple email built from their batch key,
+// e.g. 2013@gectwater.local — they never need to type or see this, they
+// just pick their batch from the dropdown and enter their password.
+function emailForBatchKey(key){
+  return key === 'admin' ? 'admin@gectwater.local' : `${key}@gectwater.local`;
+}
+
+let editableKeys = new Set();
+let isAdmin = false;
 
 const START_YEAR = 2010;
 const END_YEAR = 2022;
@@ -451,12 +479,17 @@ function renderOverall(){
 function renderGrid(){
   const grid = document.getElementById('batchGrid');
   grid.innerHTML = '';
-  batchDefs().forEach(b => {
+  const visibleBatches = (editMode && !isAdmin)
+    ? batchDefs().filter(b => editableKeys.has(b.key))
+    : batchDefs();
+
+  visibleBatches.forEach(b => {
     const y = b.key;
     const entries = batches[y] || [];
     const total = batchTotal(y);
     const pct = Math.min(100, Math.round((total/BATCH_TARGET)*100));
     const done = total >= BATCH_TARGET;
+    const canEditThis = editMode && (isAdmin || editableKeys.has(y));
 
     const entryRows = entries.length
       ? entries.slice().sort((a,b) => b.ts - a.ts).map(e => {
@@ -465,13 +498,13 @@ function renderGrid(){
           <div class="entry-row">
             <span class="who">${displayName}<span class="date">${new Date(e.ts).toLocaleDateString('en-IN', {day:'numeric', month:'short'})}</span></span>
             <span class="amt">${fmt(e.amount)}</span>
-            ${editMode ? `<button class="del" data-year="${y}" data-id="${e.id}">Remove</button>` : ''}
+            ${canEditThis ? `<button class="del" data-year="${y}" data-id="${e.id}">Remove</button>` : ''}
           </div>
         `;
         }).join('')
       : '<div class="no-entries">No contributions logged yet.</div>';
 
-    const addForm = editMode ? `
+    const addForm = canEditThis ? `
       <div class="add-row">
         <input type="text" placeholder="Contributor name (leave blank for Anonymous)" id="name-${y}">
         <input type="number" min="1" placeholder="₹ amount" id="amt-${y}">
@@ -494,7 +527,7 @@ function renderGrid(){
       </details>
     `;
 
-    if(editMode){
+    if(canEditThis){
       card.querySelector(`[data-add-year="${y}"]`).addEventListener('click', () => addEntry(y));
       card.querySelector(`#amt-${y}`).addEventListener('keydown', (ev) => { if(ev.key === 'Enter') addEntry(y); });
       card.querySelectorAll('.del').forEach(btn => {
@@ -538,15 +571,33 @@ async function removeEntry(year, id){
 function setEditMode(on){
   editMode = on;
   document.getElementById('editBanner').classList.toggle('open', on);
-  document.getElementById('gridHint').textContent = on ? 'Editing — changes save automatically' : 'View only';
-  document.getElementById('repToggle').style.display = on ? 'none' : 'inline-block';
+  if(on){
+    const label = isAdmin
+      ? 'all batches'
+      : batchDefs().filter(b => editableKeys.has(b.key)).map(b => b.label).join(', ') || 'no batches assigned';
+    document.getElementById('gridHint').textContent = `Editing — ${label}`;
+  }else{
+    document.getElementById('gridHint').textContent = 'View only';
+    editableKeys = new Set();
+    isAdmin = false;
+  }
+  document.getElementById('repFabWrap').style.display = on ? 'none' : 'flex';
   document.getElementById('repLogin').classList.remove('open');
   document.getElementById('repError').style.display = 'none';
   render();
 }
 
+function populateRepBatchSelect(){
+  const select = document.getElementById('repBatchSelect');
+  const options = [{ key: 'admin', label: 'Admin (all batches)' }, ...batchDefs()];
+  select.innerHTML = options.map(o =>
+    `<option value="${o.key}">${o.key === 'staff' ? o.label : (o.key === 'admin' ? o.label : 'Batch ' + o.label)}</option>`
+  ).join('');
+}
+
 document.getElementById('repToggle').addEventListener('click', () => {
-  document.getElementById('repLogin').classList.toggle('open');
+  const isOpen = document.getElementById('repLogin').classList.toggle('open');
+  document.getElementById('repToggle').classList.toggle('is-open', isOpen);
 });
 document.getElementById('pwToggle').addEventListener('click', () => {
   const input = document.getElementById('passcodeInput');
@@ -562,16 +613,34 @@ document.getElementById('lockBtn').addEventListener('click', () => {
   signOut(auth).catch(() => {});
 });
 
+async function loadPermissions(uid){
+  try{
+    const [ownersSnap, adminsSnap] = await Promise.all([
+      get(ref(db, 'batchOwners')),
+      get(ref(db, 'admins'))
+    ]);
+    const owners = ownersSnap.val() || {};
+    const admins = adminsSnap.val() || {};
+    isAdmin = !!admins[uid];
+    editableKeys = new Set(Object.keys(owners).filter(k => owners[k] === uid));
+  }catch(e){
+    isAdmin = false;
+    editableKeys = new Set();
+  }
+}
+
 async function tryUnlock(){
+  const batchSelect = document.getElementById('repBatchSelect');
   const input = document.getElementById('passcodeInput');
   const submitBtn = document.getElementById('passcodeSubmit');
   const errorEl = document.getElementById('repError');
   errorEl.style.display = 'none';
   submitBtn.disabled = true;
   try{
-    await signInWithEmailAndPassword(auth, REP_EMAIL, input.value);
+    const email = emailForBatchKey(batchSelect.value);
+    await signInWithEmailAndPassword(auth, email, input.value);
     input.value = '';
-    // onAuthStateChanged below flips editMode on once Firebase confirms.
+    // onAuthStateChanged below loads permissions and flips editMode on.
   }catch(e){
     errorEl.style.display = 'block';
   }finally{
@@ -581,11 +650,17 @@ async function tryUnlock(){
 
 // The real gate: editMode only turns on when Firebase confirms a signed-in
 // session, and turns off the moment that session ends (e.g. token expiry,
-// sign-out on another tab). The database rules enforce this server-side too.
-onAuthStateChanged(auth, (user) => {
+// sign-out on another tab). The database rules enforce this server-side too
+// — each rep can only write to the batch(es) listed under their UID in
+// 'batchOwners', or every batch if their UID is listed under 'admins'.
+onAuthStateChanged(auth, async (user) => {
+  if(user){
+    await loadPermissions(user.uid);
+  }
   setEditMode(!!user);
 });
 
+populateRepBatchSelect();
 loadData();
 </script>
 </body>
