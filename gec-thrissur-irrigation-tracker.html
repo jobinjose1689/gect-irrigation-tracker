@@ -350,7 +350,7 @@ const auth = getAuth(app);
 const db = getDatabase(app);
 
 function emailForBatchKey(key){
-  return key === 'admin' ? 'admin@gectwater.local' : `${key}@gectwater.local`;
+  return `${key}@gectwater.local`;
 }
 
 let editableKeys = new Set();
@@ -571,9 +571,9 @@ function setEditMode(on){
 
 function populateRepBatchSelect(){
   const select = document.getElementById('repBatchSelect');
-  const options = [{ key: 'admin', label: 'Admin (all batches)' }, ...batchDefs()];
+  const options = batchDefs();
   select.innerHTML = options.map(o =>
-    `<option value="${o.key}">${o.key === 'staff' ? o.label : (o.key === 'admin' ? o.label : 'Batch ' + o.label)}</option>`
+    `<option value="${o.key}">${o.key === 'staff' ? o.label : 'Batch ' + o.label}</option>`
   ).join('');
 }
 
